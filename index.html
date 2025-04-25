@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>사랑하는 은채만을 위한 뽀모도로 타이머 v0.1</title>
+    <style>
+        :root {
+            --primary-color: #ff6b6b;
+            --primary-hover: #ff5252;
+            --bg-color: #fff6f6;
+            --text-color: #333;
+            --card-bg: white;
+            --break-bg: #f0f8ff;
+            --long-break-bg: #f0fff0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.3s ease;
+        }
+        
+        .container {
+            background-color: var(--card-bg);
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+        }
+        
+        .hearts {
+            position: absolute;
+            top: -15px;
+            left: -15px;
+            right: -15px;
+            text-align: center;
+            font-size: 24px;
+            color: var(--primary-color);
+        }
+        
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.5rem;
+            }
+            .timer {
+                font-size: 4rem !important;
+            }
+            .container {
+                padding: 20px;
+            }
+        }
+        
+        .timer {
+            font-size: 5rem;
+            color: var(--primary-color);
+            margin: 20px 0;
+        }
+        
+        .controls button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        .controls button:hover {
+            background-color: var(--primary-hover);
+        }
+        
+        .message {
+            margin-top: 20px;
+            font-style: italic;
+            color: #666;
+        }
+        
+        .mode-selector {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .mode-selector button {
+            background-color: #f8d7da;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+            border-radius: 50px;
+            padding: 8px 15px;
+            margin: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .mode-selector button.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .stats {
+            margin-top: 25px;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 10px;
+        }
+
+        .stats-title {
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
+        .pomodoro-count {
+            font-size: 1.2rem;
+            color: var(--primary-color);
+        }
+
+        .custom-settings {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 10px;
+        }
+
+        .settings-title {
+            margin-top: 15px;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .settings-input {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 10px 0;
+        }
+
+        .settings-input label {
+            flex: 1;
+            text-align: left;
+            margin-right: 10px;
+        }
+
+        .settings-input input[type="number"] {
+            width: 80px;
+            padding: 5px;
+            border: 1px solid var(--primary-color);
+            border-radius: 5px;
+        }
+
+        .color-themes {
+            display: flex;
+            justify-content: center;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+
+        .color-theme {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin: 5px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 0.2s;
+        }
+
+        .color-theme:hover {
+            transform: scale(1.1);
+        }
+
+        .color-theme.active {
+            border: 2px solid #333;
+        }
+
+        #theme1 { background-color: #ff6b6b; }
+        #theme2 { background-color: #88d8b0; }
+        #theme3 { background-color: #8e94f2; }
+        #theme4 { background-color: #ffb347; }
+        
+        .tasks-container {
+            margin-top: 25px;
+            text-align: left;
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 0 10px;
+        }
+
+        .task-form {
+            display: flex;
+            margin-bottom: 10px;
+        }
+
+        .task-form input {
+            flex-grow: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px 0 0 5px;
+        }
+
+        .task-form button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 0 5px 5px 0;
+            padding: 8px 12px;
+            cursor: pointer;
+        }
+
+        .task-list {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .task-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            margin: 5px 0;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 5px;
+            transition: background-color 0.2s;
+        }
+
+        .task-item.completed {
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+
+        .task-item:hover {
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+
+        .task-actions button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            margin-left: 5px;
+            font-size: 1rem;
+            color: var(--primary-color);
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .tab {
+            padding: 8px 15px;
+            margin: 0 5px;
+            cursor: pointer;
+            border-radius: 5px 5px 0 0;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .tab.active {
+            background-color: rgba(255, 255, 255, 0.8);
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .tab-content {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .audio-controls {
+            margin-top: 15px;
+        }
+
+        .audio-controls label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .volume-control {
+            width: 80%;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="hearts">❤️❤️❤️</div>
+        <h1>사랑하는 은채를 위한 뽀모도로 타이머</h1>
+        
+        <div class="timer" id="timer">25:00</div>
+        
+        <div class="mode-selector">
+            <button id="work-btn" class="active">공부 (25분)</button>
+            <button id="short-break-btn">짧은 휴식 (5분)</button>
+            <button id="long-break-btn">긴 휴식 (15분)</button>
+        </div>
+        
+        <div class="controls">
+            <button id="start-btn">시작</button>
+            <button id="pause-btn">일시정지</button>
+            <button id="reset-btn">초기화</button>
+        </div>
+        
+        <div class="message" id="message">언제나 열심히 하려는 은채를 응원해! 💕</div>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="stats">통계</div>
+            <div class="tab" data-tab="tasks">목표/할일</div>
+            <div class="tab" data-tab="settings">설정</div>
+        </div>
+        
+        <div class="tab-content active" id="stats-tab">
+            <div class="stats">
+                <div class="stats-title">오늘의 뽀모도로</div>
+                <div class="pomodoro-count" id="pomodoro-count">0 세션 완료</div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="tasks-tab">
+            <div class="tasks-container">
+                <form class="task-form" id="task-form">
+                    <input type="text" id="task-input" placeholder="공부 목표 또는 할 일을 입력하세요">
+                    <button type="submit">추가</button>
+                </form>
+                <ul class="task-list" id="task-list"></ul>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="settings-tab">
+            <div class="custom-settings">
+                <div class="settings-title">타이머 설정</div>
+                <div class="settings-input">
+                    <label for="work-time">공부 시간 (분)</label>
+                    <input type="number" id="work-time" min="1" max="120" value="25">
+                </div>
+                <div class="settings-input">
+                    <label for="short-break-time">짧은 휴식 (분)</label>
+                    <input type="number" id="short-break-time" min="1" max="30" value="5">
+                </div>
+                <div class="settings-input">
+                    <label for="long-break-time">긴 휴식 (분)</label>
+                    <input type="number" id="long-break-time" min="5" max="60" value="15">
+                </div>
+                
+                <div class="settings-title">알림 설정</div>
+                <div class="settings-input">
+                    <label for="sound-enabled">알림음</label>
+                    <input type="checkbox" id="sound-enabled" checked>
+                </div>
+                <div class="audio-controls">
+                    <label for="volume-control">알림음 볼륨</label>
+                    <input type="range" id="volume-control" class="volume-control" min="0" max="1" step="0.1" value="0.7">
+                </div>
+                
+                <div class="settings-title">테마 색상</div>
+                <div class="color-themes">
+                    <div class="color-theme active" id="theme1"></div>
+                    <div class="color-theme" id="theme2"></div>
+                    <div class="color-theme" id="theme3"></div>
+                    <div class="color-theme" id="theme4"></div>
+                </div>
+                
+                <button id="save-settings" class="controls-button">설정 저장</button>
+            </div>
+        </div>
+    </div>
+
+    <audio id="notification-sound" src="https://assets.coderrocketfuel.com/pomodoro-times-up.mp3"></audio>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 타이머 상태 변수
+            let timer;
+            let timeLeft = 25 * 60; // 기본값 25분
+            let isRunning = false;
+            let currentMode = 'work';
+            let pomodoroCount = 0;
+            let tasks = [];
+            
+            // 설정 변수
+            let settings = {
+                workTime: 25,
+                shortBreakTime: 5,
+                longBreakTime: 15,
+                soundEnabled: true,
+                volume: 0.7,
+                theme: 'theme1'
+            };
+            
+            // DOM 요소
+            const timerDisplay = document.getElementById('timer');
+            const startBtn = document.getElementById('start-btn');
+            const pauseBtn = document.getElementById('pause-btn');
+            const resetBtn = document.getElementById('reset-btn');
+            const workBtn = document.getElementById('work-btn');
+            const shortBreakBtn = document.getElementById('short-break-btn');
+            const longBreakBtn = document.getElementById('long-break-btn');
+            const messageDisplay = document.getElementById('message');
+            const pomodoroCountDisplay = document.getElementById('pomodoro-count');
+            const notificationSound = document.getElementById('notification-sound');
+            const soundEnabledCheckbox = document.getElementById('sound-enabled');
+            const volumeControl = document.getElementById('volume-control');
+            const workTimeInput = document.getElementById('work-time');
+            const shortBreakTimeInput = document.getElementById('short-break-time');
+            const longBreakTimeInput = document.getElementById('long-break-time');
+            const saveSettingsBtn = document.getElementById('save-settings');
+            const taskForm = document.getElementById('task-form');
+            const taskInput = document.getElementById('task-input');
+            const taskList = document.getElementById('task-list');
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            const themeButtons = document.querySelectorAll('.color-theme');
+            
+            // 메시지 목록
+            const messages = {
+                work: [
+                    "열심히 공부하는 은채를 응원해! 💕",
+                    "은채 집중하고 있는 모습 완전 예쁘더라! ✨",
+                    "하나씩 하나씩 천천히 해보자! 🌈",
+                    "오늘도 화이팅! 은채 할 수 있따! 💪",
+                    "힘든 공부도 하나씩 하다보면 금새 다 할 수있어! 🌸",
+                    "늘 사랑하는 은채를 위해 항상 응원할게! 💖",
+                ],
+                shortBreak: [
+                    "25분 집중하기 어려웠는데 잘해냈는걸~? 🌸",
+                    "지금 딱 간식먹으면 살 안찔거같아 ㅎㅎ ☕",
+                    "25분안에 다 못했더라도 너무 조급해하지마 은채야! 잘하고있어어 🌤️",
+                    "이쁜 은채 보고싶네~ 😊"
+                ],
+                longBreak: [
+                    "언제나 힘들때~ 내게 기대~! 언제나 니곁에 서있을게~ 🌟",
+                    "수고했어! 이제 편하게 쉬자~ 💕",
+                    "오늘도 정말 수고 많았어! 💖",
+                    "진짜진짜 수고했어! 👏"
+                    
+                ]
+            };
+            
+            // 테마 설정
+            const themes = {
+                theme1: {
+                    primaryColor: '#ff6b6b',
+                    primaryHover: '#ff5252',
+                    bgColor: '#fff6f6',
+                    breakBg: '#f0f8ff',
+                    longBreakBg: '#f0fff0'
+                },
+                theme2: {
+                    primaryColor: '#88d8b0',
+                    primaryHover: '#6ec89a',
+                    bgColor: '#f0fff4',
+                    breakBg: '#ebf9f1',
+                    longBreakBg: '#e6fcf5'
+                },
+                theme3: {
+                    primaryColor: '#8e94f2',
+                    primaryHover: '#7a7fdb',
+                    bgColor: '#f5f5ff',
+                    breakBg: '#eeeeff',
+                    longBreakBg: '#e8e8ff'
+                },
+                theme4: {
+                    primaryColor: '#ffb347',
+                    primaryHover: '#ffa322',
+                    bgColor: '#fff8e8',
+                    breakBg: '#fff3d8',
+                    longBreakBg: '#ffeecb'
+                }
+            };
+            
+            // 로컬 스토리지에서 데이터 로드
+            function loadFromLocalStorage() {
+                const savedSettings = localStorage.getItem('pomodoroSettings');
+                const savedTasks = localStorage.getItem('pomodoroTasks');
+                const savedCount = localStorage.getItem('pomodoroCount');
+                
+                if (savedSettings) {
+                    settings = JSON.parse(savedSettings);
+                    updateSettingsDisplay();
+                }
+                
+                if (savedTasks) {
+                    tasks = JSON.parse(savedTasks);
+                    renderTasks();
+                }
+                
+                if (savedCount) {
+                    pomodoroCount = parseInt(savedCount);
+                    updatePomodoroCount();
+                }
+            }
+            
+            // 설정 표시 업데이트
+            function updateSettingsDisplay() {
+                workTimeInput.value = settings.workTime;
+                shortBreakTimeInput.value = settings.shortBreakTime;
+                longBreakTimeInput.value = settings.longBreakTime;
+                soundEnabledCheckbox.checked = settings.soundEnabled;
+                volumeControl.value = settings.volume;
+                
+                // 테마 버튼 업데이트
+                themeButtons.forEach(btn => {
+                    btn.classList.remove('active');
+                    if (btn.id === settings.theme) {
+                        btn.classList.add('active');
+                    }
+                });
+                
+                // 테마 적용
+                applyTheme(settings.theme);
+                
+                // 버튼 텍스트 업데이트
+                workBtn.textContent = `공부 (${settings.workTime}분)`;
+                shortBreakBtn.textContent = `짧은 휴식 (${settings.shortBreakTime}분)`;
+                longBreakBtn.textContent = `긴 휴식 (${settings.longBreakTime}분)`;
+            }
+            
+            // 테마 적용
+            function applyTheme(themeName) {
+                const theme = themes[themeName];
+                document.documentElement.style.setProperty('--primary-color', theme.primaryColor);
+                document.documentElement.style.setProperty('--primary-hover', theme.primaryHover);
+                document.documentElement.style.setProperty('--bg-color', theme.bgColor);
+                document.documentElement.style.setProperty('--break-bg', theme.breakBg);
+                document.documentElement.style.setProperty('--long-break-bg', theme.longBreakBg);
+            }
+            
+            // 설정 저장
+            function saveSettings() {
+                settings.workTime = parseInt(workTimeInput.value) || 25;
+                settings.shortBreakTime = parseInt(shortBreakTimeInput.value) || 5;
+                settings.longBreakTime = parseInt(longBreakTimeInput.value) || 15;
+                settings.soundEnabled = soundEnabledCheckbox.checked;
+                settings.volume = parseFloat(volumeControl.value);
+                
+                localStorage.setItem('pomodoroSettings', JSON.stringify(settings));
+                
+                // 타이머 재설정
+                updateSettingsDisplay();
+                resetTimer();
+                
+                alert('설정이 저장되었습니다!');
+            }
+            
+            // 뽀모도로 카운트 업데이트
+            function updatePomodoroCount() {
+                pomodoroCountDisplay.textContent = `${pomodoroCount} 세션 완료`;
+                localStorage.setItem('pomodoroCount', pomodoroCount.toString());
+            }
+            
+            // 알림음 재생
+            function playSound() {
+                if (settings.soundEnabled) {
+                    notificationSound.volume = settings.volume;
+                    notificationSound.play().catch(e => console.log('소리 재생 에러:', e));
+                }
+            }
+            
+            // 모드 설정 함수
+            function setMode(mode) {
+                currentMode = mode;
+                
+                // 버튼 활성화 상태 변경
+                workBtn.classList.remove('active');
+                shortBreakBtn.classList.remove('active');
+                longBreakBtn.classList.remove('active');
+                
+                if (mode === 'work') {
+                    workBtn.classList.add('active');
+                    timeLeft = settings.workTime * 60;
+                    document.body.style.backgroundColor = 'var(--bg-color)';
+                } else if (mode === 'shortBreak') {
+                    shortBreakBtn.classList.add('active');
+                    timeLeft = settings.shortBreakTime * 60;
+                    document.body.style.backgroundColor = 'var(--break-bg)';
+                } else if (mode === 'longBreak') {
+                    longBreakBtn.classList.add('active');
+                    timeLeft = settings.longBreakTime * 60;
+                    document.body.style.backgroundColor = 'var(--long-break-bg)';
+                }
+                
+                // 타이머 업데이트
+                updateTimerDisplay();
+                
+                // 메시지 업데이트
+                updateMessage();
+            }
+            
+            // 타이머 디스플레이 업데이트
+            function updateTimerDisplay() {
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                
+                timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+            
+            // 메시지 업데이트
+            function updateMessage() {
+                const messagesArray = messages[currentMode];
+                const randomIndex = Math.floor(Math.random() * messagesArray.length);
+                messageDisplay.textContent = messagesArray[randomIndex];
+            }
+            
+            // 타이머 시작
+            function startTimer() {
+                if (isRunning) return;
+                
+                isRunning = true;
+                timer = setInterval(() => {
+                    timeLeft--;
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(timer);
+                        isRunning = false;
+                        
+                        // 알림음 재생
+                        playSound();
+                        
+                        // 뽀모도로 완료 시 카운트 증가
+                        if (currentMode === 'work') {
+                            pomodoroCount++;
+                            updatePomodoroCount();
+                        }
+                        
+                        // 타이머 완료 시 자동으로 다음 모드로 전환
+                        if (currentMode === 'work') {
+                            setMode('shortBreak');
+                        } else {
+                            setMode('work');
+                        }
+                        
+                        // 데스크톱 알림 (브라우저가 지원하는 경우)
+                        if ('Notification' in window && Notification.permission === "granted") {
+                            const notification = new Notification("뽀모도로 타이머", {
+                                body: currentMode === 'work' ? 
+                                    "공부하느라 수고많았어 은채야ㅎㅎ 이제 잠깐 쉬자!" : 
+                                    "서.은.채!!! 공부해~ 목표한 바 이루면 나랑 또 놀러가자~",
+                                icon: "https://cdn-icons-png.flaticon.com/512/3588/3588294.png"
+                            });
+                        }
+                    }
+                    
+                    updateTimerDisplay();
+                }, 1000);
+            }
+            
+            // 타이머 일시정지
+            function pauseTimer() {
+                if (!isRunning) return;
+                
+                clearInterval(timer);
+                isRunning = false;
+            }
+            
+            // 타이머 초기화
+            function resetTimer() {
+                clearInterval(timer);
+                isRunning = false;
+                setMode(currentMode);
+            }
+            
+            // 할일 목록 관리
+            function addTask(text) {
+                const newTask = {
+                    id: Date.now(),
+                    text: text,
+                    completed: false
+                };
+                
+                tasks.push(newTask);
+                saveTasks();
+                renderTasks();
+            }
+            
+            function toggleTaskComplete(id) {
+                tasks = tasks.map(task => {
+                    if (task.id === id) {
+                        return { ...task, completed: !task.completed };
+                    }
+                    return task;
+                });
+                
+                saveTasks();
+                renderTasks();
+            }
+            
+            function deleteTask(id) {
+                tasks = tasks.filter(task => task.id !== id);
+                saveTasks();
+                renderTasks();
+            }
+            
+            function saveTasks() {
+                localStorage.setItem('pomodoroTasks', JSON.stringify(tasks));
+            }
+            
+            function renderTasks() {
+                taskList.innerHTML = '';
+                
+                tasks.forEach(task => {
+                    const li = document.createElement('li');
+                    li.className = `task-item ${task.completed ? 'completed' : ''}`;
+                    
+                    const taskText = document.createElement('span');
+                    taskText.textContent = task.text;
+                    
+                    const taskActions = document.createElement('div');
+                    taskActions.className = 'task-actions';
+                    
+                    const completeBtn = document.createElement('button');
+                    completeBtn.innerHTML = task.completed ? '🔄' : '✓';
+                    completeBtn.title = task.completed ? '미완료로 표시' : '완료로 표시';
+                    completeBtn.addEventListener('click', () => toggleTaskComplete(task.id));
+                    
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.innerHTML = '🗑️';
+                    deleteBtn.title = '삭제';
+                    deleteBtn.addEventListener('click', () => deleteTask(task.id));
+                    
+                    taskActions.appendChild(completeBtn);
+                    taskActions.appendChild(deleteBtn);
+                    
+                    li.appendChild(taskText);
+                    li.appendChild(taskActions);
+                    
+                    taskList.appendChild(li);
+                });
+            }
+            
+            // 탭 관리
+            function setupTabs() {
+                tabs.forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        // 모든 탭 비활성화
+                        tabs.forEach(t => t.classList.remove('active'));
+                        tabContents.forEach(c => c.classList.remove('active'));
+                        
+                        // 선택한 탭 활성화
+                        tab.classList.add('active');
+                        const tabId = `${tab.dataset.tab}-tab`;
+                        document.getElementById(tabId).classList.add('active');
+                    });
+                });
+            }
+            
+            // 테마 관리
+            function setupThemes() {
+                themeButtons.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        // 모든 테마 버튼 비활성화
+                        themeButtons.forEach(b => b.classList.remove('active'));
+                        
+                        // 선택한 테마 버튼 활성화
+                        btn.classList.add('active');
+                        
+                        // 테마 설정 저장
+                        settings.theme = btn.id;
+                        applyTheme(btn.id);
+                    });
+                });
+            }
+            
+            // 데스크톱 알림 권한 요청
+            function requestNotificationPermission() {
+                if ('Notification' in window) {
+                    if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+                        Notification.requestPermission();
+                    }
+                }
+            }
+            
+            // 이벤트 핸들러 바인딩
+            startBtn.addEventListener('click', startTimer);
+            pauseBtn.addEventListener('click', pauseTimer);
+            resetBtn.addEventListener('click', resetTimer);
+            workBtn.addEventListener('click', () => setMode('work'));
+            shortBreakBtn.addEventListener('click', () => setMode('shortBreak'));
+            longBreakBtn.addEventListener('click', () => setMode('longBreak'));
+            saveSettingsBtn.addEventListener('click', saveSettings);
+            
+            // 할일 폼 이벤트 리스너
+            taskForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const text = taskInput.value.trim();
+                if (text) { 
+                    addTask(text);
+                    taskInput.value = '';
+                }
+            });
+            
+            // 초기화 실행
+            loadFromLocalStorage();
+            setupTabs();
+            setupThemes();
+            setMode('work');
+            requestNotificationPermission();
+        });
+    </script>
+</body>
+</html>
